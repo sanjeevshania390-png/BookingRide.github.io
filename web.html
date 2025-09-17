@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ride Booking Service</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
+        }
+        .bg-slideshow {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+        }
+        .bg-slide {
+            position: absolute;
+            width: 100vw; height: 100vh;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s;
+            filter: blur(2px) brightness(0.4) grayscale(20%);
+        }
+        .bg-slide.active {
+            opacity: 0.5;
+        }
+        header {
+            background: linear-gradient(90deg,#007bff 60%,#00c6ff 100%);
+            color: #fff;
+            padding: 2em 0 1em 0;
+            text-align: center;
+            position: relative;
+            border-radius: 0 0 32px 32px;
+            box-shadow: 0 4px 24px rgba(0,123,255,0.12);
+        }
+        nav {
+            background: #333;
+            color: #fff;
+            padding: 0.5em;
+            text-align: center;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        nav a {
+            color: #fff;
+            margin: 0 1em;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            font-size: 1.1em;
+        }
+        nav a:hover {
+            color: #ffd700;
+        }
+        .container {
+            max-width: 900px;
+            margin: 3em auto;
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            padding: 2.5em;
+            border-radius: 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            color: #000; /* Change text color beside form to black */
+        }
+        h2 {
+            color: #000; /* Header text color black */
+            margin-top: 0;
+            font-size: 2em;
+            letter-spacing: 1px;
+        }
+        label {
+            display: block;
+            margin-top: 1em;
+            font-weight: 500;
+            color: #ffd700;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.7em;
+            margin-top: 0.5em;
+            border: 1px solid #00c6ff;
+            border-radius: 12px;
+            font-size: 1em;
+            background: #232526;
+            color: #fff;
+        }
+        button {
+            margin-top: 1em;
+            padding: 0.9em 2em;
+            background: linear-gradient(90deg,#232526,#00c6ff);
+            color: #ffd700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+            transition: background 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        button:hover {
+            background: linear-gradient(90deg,#ffd700,#00c6ff);
+            color: #232526;
+            box-shadow: 0 0 16px #ffd700, 0 0 32px #00c6ff;
+            transform: scale(1.07);
+        }
+        button::after {
+            content: '';
+            position: absolute;
+            left: -50%;
+            top: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(120deg,rgba(255,255,255,0.2) 0%,rgba(255,255,255,0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        button:hover::after {
+            opacity: 1;
+            animation: shine 0.7s linear;
+        }
+        @keyframes shine {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+        #bookingForm {
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        #bookingForm:hover {
+            box-shadow: 0 0 24px #00c6ff, 0 4px 32px #ffd700;
+            transform: scale(1.02);
+            background: linear-gradient(135deg, #232526 60%, #00c6ff 100%);
+            border-radius: 24px;
+        }
+        .options, .features {
+            margin-top: 2em;
+            display: flex;
+            gap: 1em;
+            flex-wrap: wrap;
+        }
+        .option-card, .feature-card {
+            background: #f8f9fa;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 1em;
+            flex: 1 1 45%;
+            min-width: 200px;
+            margin-bottom: 1em;
+            display: flex;
+            align-items: flex-start;
+            gap: 1em;
+            color: #000; /* Option/feature card text color black */
+        }
+        .option-card i, .feature-card i {
+            font-size: 2em;
+            color: #007bff;
+            margin-top: 0.2em;
+        }
+        .meet-rider {
+            margin-top: 2em;
+            background: #f0f8ff;
+            border-radius: 16px;
+            padding: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 1.5em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .meet-rider-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff;
+            background: #fff;
+        }
+        .meet-rider-info {
+            flex: 1;
+            color: #000;
+        }
+        .live-connection {
+            margin-top: 1em;
+            background: linear-gradient(90deg,#e1ffe1,#e0f7fa);
+            border-radius: 12px;
+            padding: 1em;
+            text-align: center;
+            color: #007bff;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .ride-history, .support {
+            margin-top: 2em;
+            background: #e9ecef;
+            padding: 1em;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .ride-history h2, .support h2 {
+            color: #333;
+        }
+        .footer {
+            text-align: center;
+            padding: 1em 0;
+            background: linear-gradient(90deg,#007bff,#00c6ff);
+            color: #fff;
+            margin-top: 3em;
+            border-radius: 0 0 24px 24px;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+        /* Popup Modal Styles */
+        #bookingPopup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 123, 255, 0.15);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        #bookingPopup > div {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 123, 255, 0.18);
+            padding: 2em 2.5em;
+            text-align: center;
+            max-width: 350px;
+            margin: auto;
+            position: relative;
+        }
+        #bookingPopup h2 {
+            color: #007bff;
+            margin: 0.5em 0 0.2em 0;
+        }
+        #bookingPopup p {
+            font-size: 1.1em;
+            color: #333;
+        }
+        #closePopupBtn {
+            margin-top: 1em;
+            padding: 0.7em 2em;
+            background: linear-gradient(90deg,#007bff,#00c6ff);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Slideshow: rider, booking, bikes, cars -->
+    <div class="bg-slideshow">
+        <img class="bg-slide active" src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=1200&q=80" alt="Bike Rider">
+        <img class="bg-slide" src="https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=80" alt="Car Ride">
+        <img class="bg-slide" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=1200&h=800&facepad=2&q=80" alt="Rider">
+        <img class="bg-slide" src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80" alt="Rider and Customer">
+        <img class="bg-slide" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=1200&q=80" alt="Premium Ride">
+        <img class="bg-slide" src="https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=1200&q=80" alt="Booking App">
+    </div>
+    <header>
+        <h1 style="font-size:3em; color:#000;">Book Your Ride</h1>
+        <p style="color:#000;">Fast, Safe, Reliable</p>
+    </header>
+    <!-- Banner below header -->
+    <div style="width:100%;background:linear-gradient(90deg,#00c6ff,#007bff);color:#fff;text-align:center;padding:1em 0;font-size:1.2em;font-weight:600;letter-spacing:1px;">
+        🚗 Special Offer: Get 20% off your first ride! Use code <span style="background:#fff;color:#007bff;padding:0.2em 0.5em;border-radius:8px;">WELCOME20</span>
+    </div>
+    <nav>
+        <a href="#"><i class="fas fa-home"></i> Home</a>
+        <a href="#about"><i class="fas fa-info-circle"></i> About</a>
+        <a href="#services"><i class="fas fa-concierge-bell"></i> Services</a>
+        <a href="#book"><i class="fas fa-car"></i> Book Ride</a>
+        <a href="#history"><i class="fas fa-history"></i> Ride History</a>
+        <a href="#support"><i class="fas fa-headset"></i> Support</a>
+    </nav>
+    <div class="container" id="book">
+        <h2><i class="fas fa-taxi"></i> Ride Booking Form</h2>
+        <form id="bookingForm">
+            <label for="pickup"><i class="fas fa-map-marker-alt"></i> Pickup Location:</label>
+            <input type="text" id="pickup" name="pickup" required>
+
+            <label for="drop"><i class="fas fa-map-pin"></i> Drop Location:</label>
+            <input type="text" id="drop" name="drop" required>
+
+            <label for="rideType"><i class="fas fa-car-side"></i> Ride Type:</label>
+            <select id="rideType" name="rideType">
+                <option value="standard">Standard</option>
+                <option value="premium">Premium</option>
+                <option value="shared">Shared</option>
+                <option value="bike">Bike</option>
+            </select>
+
+            <label for="date"><i class="fas fa-calendar-alt"></i> Date:</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="time"><i class="fas fa-clock"></i> Time:</label>
+            <input type="time" id="time" name="time" required>
+
+            <label for="contact"><i class="fas fa-phone"></i> Contact Number:</label>
+            <input type="tel" id="contact" name="contact" required>
+
+            <button type="submit"><i class="fas fa-check"></i> Book Now</button>
+        </form>
+        <div id="confirmationMsg" style="display:none; margin-top:1em; background:#e1ffe1; color:#007bff; padding:1em; border-radius:12px; text-align:center; font-weight:600;">
+            Thanks for booking, enjoy your journey!
+        </div>
+        <!-- Popup Modal -->
+        <div id="bookingPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,123,255,0.15); z-index:9999; align-items:center; justify-content:center;">
+            <div style="background:#fff; border-radius:24px; box-shadow:0 8px 32px rgba(0,123,255,0.18); padding:2em 2.5em; text-align:center; max-width:350px; margin:auto; position:relative;">
+                <span style="font-size:2.5em; color:#00c6ff;"><i class="fas fa-check-circle"></i></span>
+                <h2 style="color:#007bff; margin:0.5em 0 0.2em 0;">Booking Confirmed!</h2>
+                <p style="font-size:1.1em; color:#333;">Thanks for booking,<br>enjoy your journey!</p>
+                <button id="closePopupBtn" style="margin-top:1em; padding:0.7em 2em; background:linear-gradient(90deg,#007bff,#00c6ff); color:#fff; border:none; border-radius:12px; font-size:1em; font-weight:600; cursor:pointer;">Close</button>
+            </div>
+        </div>
+        <div class="options">
+            <div class="option-card"><i class="fas fa-calendar-plus"></i>
+                <div>
+                    <strong>Schedule a ride for later</strong>
+                    <p>Plan your ride in advance and never miss an appointment.</p>
+                </div>
+            </div>
+            <div class="option-card"><i class="fas fa-user-friends"></i>
+                <div>
+                    <strong>Choose preferred driver</strong>
+                    <p>Select your favorite driver for a personalized experience.</p>
+                </div>
+            </div>
+            <div class="option-card"><i class="fas fa-comment-dots"></i>
+                <div>
+                    <strong>Add special instructions</strong>
+                    <p>Let us know your preferences for a comfortable journey.</p>
+                </div>
+            </div>
+            <div class="option-card"><i class="fas fa-wheelchair"></i>
+                <div>
+                    <strong>Wheelchair accessible vehicle</strong>
+                    <p>Request vehicles with accessibility features.</p>
+                </div>
+            </div>
+        </div>
+        <div class="features">
+            <div class="feature-card"><i class="fas fa-money-check-alt"></i>
+                <div>
+                    <strong>Fare Estimator</strong>
+                    <p>Get an instant fare estimate before booking your ride.</p>
+                </div>
+            </div>
+            <div class="feature-card"><i class="fas fa-gift"></i>
+                <div>
+                    <strong>Promo Codes</strong>
+                    <p>Apply promo codes for discounts and special offers.</p>
+                </div>
+            </div>
+            <div class="feature-card"><i class="fas fa-star"></i>
+                <div>
+                    <strong>Loyalty Points</strong>
+                    <p>Earn points on every ride and redeem for free trips.</p>
+                </div>
+            </div>
+            <div class="feature-card"><i class="fas fa-credit-card"></i>
+                <div>
+                    <strong>Multiple Payment Options</strong>
+                    <p>Pay via cash, card, or digital wallets.</p>
+                </div>
+            </div>
+            <div class="feature-card"><i class="fas fa-map-marked-alt"></i>
+                <div>
+                    <strong>Live Tracking</strong>
+                    <p>Track your ride and rider in real-time on the map.</p>
+                </div>
+            </div>
+            <div class="feature-card"><i class="fas fa-comments"></i>
+                <div>
+                    <strong>Instant Chat</strong>
+                    <p>Chat with your rider instantly for coordination.</p>
+                </div>
+            </div>
+            <div class="feature-card"><i class="fas fa-bell"></i>
+                <div>
+                    <strong>Push Notifications</strong>
+                    <p>Get instant updates about your ride status.</p>
+                </div>
+            </div>
+            <div class="feature-card"><i class="fas fa-user-shield"></i>
+                <div>
+                    <strong>Safety Features</strong>
+                    <p>Emergency button, trip sharing, and verified drivers.</p>
+                </div>
+            </div>
+        </div>
+        <div class="meet-rider">
+            <img class="meet-rider-img" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=128&h=128&facepad=2&q=80" alt="Rider">
+            <div class="meet-rider-info">
+                <h3><i class="fas fa-user"></i> Meet Your Rider</h3>
+                <p><strong>Name:</strong> Alex Johnson</p>
+                <p><strong>Vehicle:</strong> Honda City (Car) & Yamaha FZ (Bike)</p>
+                <p><strong>Rating:</strong> ★★★★☆</p>
+            </div>
+        </div>
+        <div class="live-connection">
+            <i class="fas fa-link"></i> Connected with your rider! You can chat or call for updates.
+        </div>
+    </div>
+    <div class="container ride-history" id="history">
+        <h2><i class="fas fa-history"></i> Your Ride History</h2>
+        <ul id="historyList" style="padding-left:0; list-style:none;">
+            <!-- Booking history items will appear here -->
+        </ul>
+        <p id="noHistoryMsg">No rides booked yet.</p>
+    </div>
+    <div class="container support" id="support">
+        <h2><i class="fas fa-headset"></i> Support</h2>
+        <p>Need help? Contact us at <a href="mailto:support@rideservice.com">support@rideservice.com</a> or call 1800-123-456.</p>
+        <p>Live chat available 24/7!</p>
+    </div>
+    <div class="container" id="about">
+        <h2><i class="fas fa-info-circle"></i> About</h2>
+        <p>
+            Welcome to Ride Booking Service! We connect riders and customers for safe, fast, and reliable journeys. Our platform offers multiple ride options, instant booking, and top-rated drivers.
+        </p>
+    </div>
+    <div class="container" id="services">
+        <h2><i class="fas fa-concierge-bell"></i> Services</h2>
+        <ul style="list-style:none;padding-left:0;">
+            <li><i class="fas fa-taxi"></i> City Taxi & Bike Rides</li>
+            <li><i class="fas fa-calendar-check"></i> Advance Booking</li>
+            <li><i class="fas fa-user-shield"></i> Safety & Emergency Support</li>
+            <li><i class="fas fa-gift"></i> Promo Codes & Loyalty Points</li>
+            <li><i class="fas fa-map-marked-alt"></i> Live Tracking</li>
+            <li><i class="fas fa-comments"></i> Instant Chat with Rider</li>
+        </ul>
+    </div>
+    <div class="footer">
+        &copy; 2024 Ride Booking Service. All rights reserved.
+    </div>
+    <script>
+        // Background slideshow logic
+        const slides = document.querySelectorAll('.bg-slide');
+        let current = 0;
+        setInterval(() => {
+            slides[current].classList.remove('active');
+            current = (current + 1) % slides.length;
+            slides[current].classList.add('active');
+        }, 4000);
+
+        // Booking form logic
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Show confirmation message
+            document.getElementById('confirmationMsg').style.display = 'block';
+
+            // Show popup modal
+            document.getElementById('bookingPopup').style.display = 'flex';
+
+            // Collect form data
+            const pickup = document.getElementById('pickup').value;
+            const drop = document.getElementById('drop').value;
+            const rideType = document.getElementById('rideType').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const contact = document.getElementById('contact').value;
+
+            // Add booking to history
+            const historyList = document.getElementById('historyList');
+            const noHistoryMsg = document.getElementById('noHistoryMsg');
+            const item = document.createElement('li');
+            item.style.background = "#f7faff";
+            item.style.margin = "0.5em 0";
+            item.style.padding = "1em";
+            item.style.borderRadius = "12px";
+            item.style.boxShadow = "0 1px 4px rgba(0,0,0,0.05)";
+            item.innerHTML = `
+                <strong><i class="fas fa-map-marker-alt"></i> ${pickup}</strong> 
+                <i class="fas fa-arrow-right"></i> 
+                <strong><i class="fas fa-map-pin"></i> ${drop}</strong><br>
+                <span><i class="fas fa-car-side"></i> ${rideType}</span> | 
+                <span><i class="fas fa-calendar-alt"></i> ${date}</span> | 
+                <span><i class="fas fa-clock"></i> ${time}</span> | 
+                <span><i class="fas fa-phone"></i> ${contact}</span>
+            `;
+            historyList.appendChild(item);
+            noHistoryMsg.style.display = 'none';
+
+            // Prepare mailto link
+            const subject = encodeURIComponent('New Ride Booking');
+            const body = encodeURIComponent(
+                `Pickup Location: ${pickup}\nDrop Location: ${drop}\nRide Type: ${rideType}\nDate: ${date}\nTime: ${time}\nContact Number: ${contact}`
+            );
+            window.location.href = `mailto:sanjeevgaloia@gmail.com?subject=${subject}&body=${body}`;
+        });
+
+        // Popup close button logic
+        document.getElementById('closePopupBtn').onclick = function() {
+            document.getElementById('bookingPopup').style.display = 'none';
+        };
+    </script>
+</body>
+</html>
